@@ -252,3 +252,74 @@ func (a *app) dot(w int32) {
 	a.r.SetDrawColor(c.R, c.G, c.B, 255)
 	a.r.FillRect(&sdl.Rect{X: w - 36, Y: 20, W: 14, H: 14})
 }
+
+// ---- key sheet ----
+
+type binding struct {
+	caps []string
+	desc string
+}
+
+var bindings = []binding{
+	{[]string{"Esc"}, "Open / close the menu"},
+	{[]string{"Space"}, "Pause / resume listening"},
+	{[]string{"←", "→"}, "Back / forward 5 words"},
+	{[]string{"↑", "↓"}, "Back / forward 1 word"},
+	{[]string{"Home"}, "Restart the script"},
+	{[]string{"Wheel"}, "Nudge the position"},
+	{[]string{"+", "-"}, "Text size"},
+	{[]string{"M"}, "Mirror the screen"},
+	{[]string{"Ctrl", "V"}, "Paste a script from the clipboard"},
+	{[]string{"Ctrl", "O"}, "Open a script file"},
+	{[]string{"F1", "?"}, "Show this sheet"},
+	{[]string{"Enter"}, "In the menu: ↑↓ select, ←→ change, Enter act"},
+}
+
+func (a *app) cap(label string, px, x, y int) int {
+	k := faceKey{px: px}
+	w := a.gl.measure(k, label) + px
+	h := a.gl.lineHeight(k) + 6
+	a.r.SetDrawColor(24, 28, 34, 255)
+	a.r.FillRect(&sdl.Rect{X: int32(x), Y: int32(y + 4), W: int32(w), H: int32(h)})
+	a.r.SetDrawColor(70, 80, 96, 255)
+	a.r.FillRect(&sdl.Rect{X: int32(x), Y: int32(y), W: int32(w), H: int32(h)})
+	a.gl.draw(k, label, x+px/2, y+3, colUpcoming)
+	return w
+}
+
+func (a *app) drawKeys(w, h int32) {
+	a.r.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
+	a.r.SetDrawColor(0, 0, 0, 245)
+	a.r.FillRect(&sdl.Rect{W: w, H: h})
+	a.hits = append(a.hits, hit{sdl.Rect{W: w, H: h}, func() { a.keysOpen = false }})
+	n := len(bindings)
+	rh := min((int(h)-90)/n, 64)
+	px := rh * 50 / 100
+	// Shrink until the key caps and the longest description fit side by side.
+	var capW, descW int
+	for ; px > 10; px-- {
+		k := faceKey{px: px}
+		capW, descW = 0, 0
+		for _, b := range bindings {
+			cw := 0
+			for _, c := range b.caps {
+				cw += a.gl.measure(k, c) + px + px/3
+			}
+			capW, descW = max(capW, cw), max(descW, a.gl.measure(k, b.desc))
+		}
+		if 40+capW+30+descW+20 <= int(w) {
+			break
+		}
+	}
+	title := faceKey{px: max(20, px*3/2)}
+	a.gl.draw(title, "Keys", 40, 12, colAccent)
+	y0 := 12 + a.gl.lineHeight(title) + 8
+	for i, b := range bindings {
+		x, y := 40, y0+i*rh
+		for _, c := range b.caps {
+			x += a.cap(c, px, x, y) + px/3
+		}
+		a.gl.draw(faceKey{px: px}, b.desc, 40+capW+30, y+3, colUpcoming)
+	}
+	a.gl.draw(faceKey{px: max(14, px*2/3), italic: true}, "Any key or click closes", 40, y0+n*rh+6, colDone)
+}
