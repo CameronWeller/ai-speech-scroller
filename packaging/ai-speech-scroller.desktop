@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=AI Speech Scroller
+Comment=Teleprompter that follows your voice
+Exec=ai-speech-scroller
+Icon=ai-speech-scroller
+Terminal=false
+Categories=AudioVideo;Video;
+Keywords=teleprompter;speech;script;
