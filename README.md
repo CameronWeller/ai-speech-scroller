@@ -1,51 +1,103 @@
 # AI Speech Scroller
 
 A native teleprompter that follows your voice. Microphone capture and speech recognition run
-**offline inside the app** (Vosk), and the tracker is **misread-tolerant**: if the recogniser drops
-or garbles a word or two, the script keeps moving as soon as it hears another word it recognises
-further along. It never jumps backward, and a lone "the" or an unrelated word far ahead can't yank
-the script away. No browser involved.
+**offline inside the app** ([Vosk](https://alphacephei.com/vosk/)); nothing leaves your machine and
+no browser is involved.
 
-## Use
+The tracker is **misread-tolerant**. If the recogniser drops or garbles a word or two, the script
+keeps moving as soon as it hears another word it recognises further along. It never jumps backward,
+and a lone "the" or an unrelated word far ahead can't yank the script away.
+
+Built for a hardware teleprompter on a spare monitor (developed against a Neewer X11 on its own
+display), but it works fullscreen on any screen.
+
+## Install
+
+Download from the [releases page](https://github.com/CameronWeller/ai-speech-scroller/releases):
+
+- **`.deb`** (Ubuntu/Debian): `sudo apt install ./ai-speech-scroller_<version>_amd64.deb`
+  (installs the binary and `libvosk.so`, and pulls in SDL2).
+- **tarball**: unpack, keep `libvosk.so` next to the binary, and install `libsdl2-2.0-0`.
+
+Linux x86-64 only for now (Wayland or X11). A hosted apt repository for `apt upgrade` is future work.
+
+## Quick start
 
 ```bash
-ai-speech-scroller script.txt              # opens fullscreen on the screen you last chose
-ai-speech-scroller -list                   # show screens and microphones
-ai-speech-scroller -display HJW script.txt # pick a screen by index or part of its name (remembered)
-ai-speech-scroller -mic "USB Audio" script.txt
+ai-speech-scroller -list                    # screens and microphones
+ai-speech-scroller -display HJW script.txt  # fullscreen on that screen; remembered next time
 ```
 
-Change the script from the menu (**Script: Paste clipboard / Open file...**) or with `Ctrl+V` (paste) and `Ctrl+O` (open). Editing the script file while it runs reloads it. `[bracketed]` text and lines starting with `→`
-are stage directions: shown dim, never expected to be spoken.
+Then press **Space** to start or stop listening and read. **Esc** opens the menu.
 
-**Esc opens the menu** (every key action is also a menu or on-screen button; `F1` or Menu → Help shows a visual key sheet): listening on/off, microphone, screen, text size, column width, reading
-line, mirror (off by default; on for glass that reflects the screen), restart, nudge, quit. Use ↑↓ to select,
-←→ to change, Enter to activate. With the menu closed: Space pauses/resumes listening, ←/→ nudge
-five words, ↑/↓ one word, Home restarts, `M` mirrors, `+`/`-` text size. Settings are remembered in
-`~/.config/ai-speech-scroller/config.json`. A dot in the top-right corner is green while listening.
+| Flag | Meaning |
+|---|---|
+| `script.txt` | script to show (remembered; omit to reuse the last one) |
+| `-display X` | screen by index or part of its name (remembered) |
+| `-mic X` | microphone by part of its name (remembered) |
+| `-windowed` | normal window instead of fullscreen |
+| `-list` | list screens and microphones, then exit |
 
-## Build
+## Scripts
 
-Linux (Wayland or X11), Go 1.25, SDL2 and ALSA/Pulse headers:
+Plain text. Blank lines are kept as paragraph gaps. Stage directions are shown dim and are never
+expected to be spoken: anything in `[brackets]` and any line starting with `→` or `->`.
+
+Change the script without leaving the prompter: **Ctrl+V** pastes the clipboard, **Ctrl+O** opens a
+file (needs `zenity` or `kdialog`), and editing the file on disk reloads it within a second.
+
+## Controls
+
+Every key action is also a menu item or an on-screen button. Move the mouse and a button bar
+appears; **F1** (or Menu → Help) shows a visual key sheet.
+
+| Key | Action |
+|---|---|
+| Esc | open / close the menu |
+| Space | pause / resume listening |
+| ← → | back / forward 5 words |
+| ↑ ↓ | back / forward 1 word |
+| Home | restart the script |
+| Mouse wheel | nudge the position |
+| + / − | text size |
+| M | mirror (for glass that reflects the screen; off by default) |
+| Ctrl+V / Ctrl+O | paste / open a script |
+| F1 or ? | key sheet |
+
+The menu also sets microphone, screen, text size, column width and reading-line position.
+Settings persist in `~/.config/ai-speech-scroller/config.json`. A small square in the top-right
+corner is green while listening and grey when paused.
+
+## Troubleshooting
+
+- **Wrong screen**: `-list`, then `-display <name or index>`, or Esc → Screen.
+- **No sound picked up**: Esc → Microphone and pick the right input; loopback "Monitor of …"
+  sources are hidden.
+- **Backwards text**: toggle Mirror (M).
+- **Skips or stalls**: speak the script roughly in order; one or two misreads are fine, but a long
+  ad-lib needs ← / → to re-sync.
+
+## Build from source
+
+Needs Go 1.25, `libsdl2-dev` and `libasound2-dev`.
 
 ```bash
-sudo apt install libsdl2-dev libasound2-dev
-scripts/fetch-assets.sh     # libvosk.so -> lib/, model -> internal/asr/model.tar.gz (embedded)
+scripts/fetch-assets.sh   # libvosk.so -> lib/, small English model -> internal/asr/model.tar.gz (embedded)
 go build -o ai-speech-scroller .
 go test ./...
 ```
 
-`libvosk.so` is loaded from next to the binary, `lib/`, or `/usr/lib/ai-speech-scroller`.
-Releases: pushing a `v*` tag builds a Linux tarball and a `.deb` (`nfpm.yaml`) and attaches them
-to a GitHub release. A hosted apt repository for `apt upgrade` is future work.
+`libvosk.so` is loaded from beside the binary, `lib/`, or `/usr/lib/ai-speech-scroller`.
+Pushing a `v*` tag builds the tarball and `.deb` (`nfpm.yaml`) and attaches them to a GitHub release.
 
 ## How the tracking works
 
-`internal/match` keeps the next expected word. For each recognition hypothesis it looks at the
-last few heard words and searches 12 words ahead. A match within 3 words moves the script; a
-farther one needs two consecutive words to line up. Matching is exact, prefix (partial results)
-or fuzzy (edit similarity ≥ 0.72). `cmd/wavtest` runs a WAV file through the whole pipeline.
+`internal/match` keeps the next expected word. For each recognition result it looks at the last few
+heard words and searches 12 words ahead. A match within 3 words moves the script; a farther one needs
+two consecutive words to line up. Matching is exact, prefix (partial results cut words short) or
+fuzzy (edit similarity ≥ 0.72). `internal/asr` captures audio with miniaudio and feeds Vosk;
+`cmd/wavtest` runs a WAV file through the whole pipeline.
 
 ## Licence
 
-MIT. Vosk and the model are Apache-2.0.
+MIT. Vosk and its model are Apache-2.0.

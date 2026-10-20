@@ -205,7 +205,6 @@ func (a *app) setup(windowed bool) {
 	if a.r, err = sdl.CreateRenderer(a.win, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC|sdl.RENDERER_TARGETTEXTURE); err != nil {
 		fatal(err)
 	}
-	sdl.ShowCursor(sdl.DISABLE) // we draw our own large cursor
 	sdl.DisableScreenSaver()
 	a.gl = newGlyphs(a.r)
 }
@@ -443,8 +442,11 @@ func (a *app) frame(dt float64) {
 		flip = sdl.FLIP_HORIZONTAL
 	}
 	_ = a.r.CopyEx(a.target2, nil, nil, 0, nil, flip)
+	// Use the system cursor; hide it while the prompter is untouched.
 	if a.menuOpen || a.keysOpen || a.mouseActive() {
-		a.drawCursor(h)
+		sdl.ShowCursor(sdl.ENABLE)
+	} else {
+		sdl.ShowCursor(sdl.DISABLE)
 	}
 	a.r.Present()
 }
