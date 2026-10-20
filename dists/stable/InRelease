@@ -4,30 +4,30 @@ Hash: SHA512
 Architectures: amd64
 Codename: stable
 Components: main
-Date: Tue, 20 Oct 2026 03:29:24 +0000
+Date: Tue, 20 Oct 2026 03:43:31 +0000
 Label: ai-speech-scroller
 Origin: CameronWeller
 Suite: stable
 MD5Sum:
- 29faab6250093e0d9be73c3b85b86454              155 Release
- ed44cc4bd7601fd12d4ddbc03556c205              604 main/binary-amd64/Packages
- efaf790cf330fb085f6fdd029909bda3              437 main/binary-amd64/Packages.gz
+ 27e0d68ef2feaeb92a2a52a97b77836e              155 Release
+ 8c13e0f95780bdff90c2433d53038f4a              604 main/binary-amd64/Packages
+ 0350c7601fc9d085e32e6bd97d8b29e5              437 main/binary-amd64/Packages.gz
 SHA1:
- 3707f8de6fad2bf3a0828cae368317788ee04fcf              155 Release
- 778d3006e06638ee4e71f1d01a8d3ae112a3e70f              604 main/binary-amd64/Packages
- 2654f8c9804a8638515d9b2b07740a3c7a72ffc0              437 main/binary-amd64/Packages.gz
+ 340cdb4308fb5fb478cd315f18ec36df0fd1523f              155 Release
+ 73982608b4593ff9b026af1ecc185069b53f007b              604 main/binary-amd64/Packages
+ 030fb82219cb0249c33ce6f4d959fadfb3d01c2a              437 main/binary-amd64/Packages.gz
 SHA256:
- 598696870fa034470b9e3ea3333f7e07b4c03365a143a2653a5c5e30a76f8f7f              155 Release
- f6d878e94bfe23f789f597f176101d0ccc11694be3d589a11cc8e862ebf826f0              604 main/binary-amd64/Packages
- dc215ed14a95d996ceb13d4de8fb2baf6b0276e7d9bad92c123936c80ec66ddb              437 main/binary-amd64/Packages.gz
+ e511a7ba1cdb7c7445a1d988b9d24325376aad8666583663c670ec7d9749491d              155 Release
+ c3ee62d83b583f84c7fef06e4e52c4c7f5823064c6aa4e0ed4fa83630324218a              604 main/binary-amd64/Packages
+ 97e39826274c601e3dda684df9d73e6cf836f75359816f9123c511913fd3561c              437 main/binary-amd64/Packages.gz
 SHA512:
- 9f6bda419dab42043476e4d1477c53092a3ecb4aa9e01d8942acdefbb1cfa5b6073adf88c949d6dd4a4b0d423ada0dc86ff59148eac6f53d5907883f314b4137              155 Release
- fa38d5efd4c8b5d56401737ef3aa7facc251afed7681321b5bb58e7f0673b99f829d8c945813541287261029ecc4b3b00711f2e0f15571116ac4333314e13f6a              604 main/binary-amd64/Packages
- 3a9962348fd593fd67f69ca2096f068835f5d3d70c679669ea20fddbbe319442cd22a6cfa929ecd6cf382e3a243ef4b3e1b223a35aeb052604afc517a1ae0da5              437 main/binary-amd64/Packages.gz
+ 734d34e6fdedd924fd9691c277138e4749221a701e3709ecb390779a9c671f35ab474146fe48dbe9d8d364933a24157b2ecf489b29fa7fbf61a43901c5a01ced              155 Release
+ 28fc2501872088459d4e4ac99117184651833a32cc68cba9a0a521d7d56dd6907aef0fee168aaad1528045b87bffb7171c7e3fd58d4d3172dae0570f479cad0a              604 main/binary-amd64/Packages
+ e0ccab05bd66b03bf1ae284108f11eb4fd6aee9e76e834e1c6654ee5a4dc1e65f2a9c04338d3c60ff26cfed83d3f5c76ecde168760151e9927a793282c3e734c              437 main/binary-amd64/Packages.gz
 -----BEGIN PGP SIGNATURE-----
 
-iHUEARYKAB0WIQTO3fDfoFw1tq87+SJ9jy2DywldmQUCatbgFAAKCRB9jy2Dywld
-mZ8qAPsEgBG06eaN9zWtbHztfpWX9/yLOHgiACQdyZNmxPZSMAD/VKAcHcMJVwl4
-YOhVYI34gwmqhEBFGm5cYzjX2v4D/gs=
-=GcU3
+iHUEARYKAB0WIQTO3fDfoFw1tq87+SJ9jy2DywldmQUCatbjYwAKCRB9jy2Dywld
+mRFEAP9iCl2sGtBFRWwjwHPn5f5NICbSIhq018nCVvDkiGLxJQD9Gxb5MyhTVKmF
+kbdwASntu4uQWR77q0cd+h3QcUijUgA=
+=Nby7
 -----END PGP SIGNATURE-----
