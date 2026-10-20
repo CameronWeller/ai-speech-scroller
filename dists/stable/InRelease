@@ -1,0 +1,33 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Architectures: amd64
+Codename: stable
+Components: main
+Date: Tue, 20 Oct 2026 03:29:24 +0000
+Label: ai-speech-scroller
+Origin: CameronWeller
+Suite: stable
+MD5Sum:
+ 29faab6250093e0d9be73c3b85b86454              155 Release
+ ed44cc4bd7601fd12d4ddbc03556c205              604 main/binary-amd64/Packages
+ efaf790cf330fb085f6fdd029909bda3              437 main/binary-amd64/Packages.gz
+SHA1:
+ 3707f8de6fad2bf3a0828cae368317788ee04fcf              155 Release
+ 778d3006e06638ee4e71f1d01a8d3ae112a3e70f              604 main/binary-amd64/Packages
+ 2654f8c9804a8638515d9b2b07740a3c7a72ffc0              437 main/binary-amd64/Packages.gz
+SHA256:
+ 598696870fa034470b9e3ea3333f7e07b4c03365a143a2653a5c5e30a76f8f7f              155 Release
+ f6d878e94bfe23f789f597f176101d0ccc11694be3d589a11cc8e862ebf826f0              604 main/binary-amd64/Packages
+ dc215ed14a95d996ceb13d4de8fb2baf6b0276e7d9bad92c123936c80ec66ddb              437 main/binary-amd64/Packages.gz
+SHA512:
+ 9f6bda419dab42043476e4d1477c53092a3ecb4aa9e01d8942acdefbb1cfa5b6073adf88c949d6dd4a4b0d423ada0dc86ff59148eac6f53d5907883f314b4137              155 Release
+ fa38d5efd4c8b5d56401737ef3aa7facc251afed7681321b5bb58e7f0673b99f829d8c945813541287261029ecc4b3b00711f2e0f15571116ac4333314e13f6a              604 main/binary-amd64/Packages
+ 3a9962348fd593fd67f69ca2096f068835f5d3d70c679669ea20fddbbe319442cd22a6cfa929ecd6cf382e3a243ef4b3e1b223a35aeb052604afc517a1ae0da5              437 main/binary-amd64/Packages.gz
+-----BEGIN PGP SIGNATURE-----
+
+iHUEARYKAB0WIQTO3fDfoFw1tq87+SJ9jy2DywldmQUCatbgFAAKCRB9jy2Dywld
+mZ8qAPsEgBG06eaN9zWtbHztfpWX9/yLOHgiACQdyZNmxPZSMAD/VKAcHcMJVwl4
+YOhVYI34gwmqhEBFGm5cYzjX2v4D/gs=
+=GcU3
+-----END PGP SIGNATURE-----

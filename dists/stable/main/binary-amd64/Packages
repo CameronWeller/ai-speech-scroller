@@ -1,0 +1,16 @@
+Package: ai-speech-scroller
+Version: 0.2.4
+Architecture: amd64
+Maintainer: Cameron Weller <20343009+CameronWeller@users.noreply.github.com>
+Installed-Size: 69564
+Depends: libsdl2-2.0-0
+Filename: pool/ai-speech-scroller_0.2.4_amd64.deb
+Size: 49886790
+MD5sum: 197b99f788adc56dac413eb5452808f4
+SHA1: d5cb925249ab6ee19cc3d223e26cae3c39b20875
+SHA256: 8e17057e3d7488c745adf63e2a858127785f5f6ea697ad764afc111e5bb7da32
+Priority: optional
+Homepage: https://github.com/CameronWeller/ai-speech-scroller
+Description: Teleprompter that follows your voice with offline, misread-tolerant speech tracking.
+License: MIT
+
