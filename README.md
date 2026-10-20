@@ -18,7 +18,7 @@ ai-speech-scroller -mic "USB Audio" script.txt
 Change the script from the menu (**Script: Paste clipboard / Open file...**) or with `Ctrl+V` (paste) and `Ctrl+O` (open). Editing the script file while it runs reloads it. `[bracketed]` text and lines starting with `→`
 are stage directions: shown dim, never expected to be spoken.
 
-**Esc opens the menu**: listening on/off, microphone, screen, text size, column width, reading
+**Esc opens the menu** (every key action is also a menu or on-screen button; `F1` or Menu → Help shows a visual key sheet): listening on/off, microphone, screen, text size, column width, reading
 line, mirror (off by default; on for glass that reflects the screen), restart, nudge, quit. Use ↑↓ to select,
 ←→ to change, Enter to activate. With the menu closed: Space pauses/resumes listening, ←/→ nudge
 five words, ↑/↓ one word, Home restarts, `M` mirrors, `+`/`-` text size. Settings are remembered in

@@ -60,6 +60,7 @@ type app struct {
 	listening bool
 
 	menuOpen bool
+	keysOpen bool
 	menuSel  int
 	menuSub  int
 	hits     []hit
@@ -296,6 +297,14 @@ func (a *app) cycleMic(d int) {
 func clamp(v, lo, hi int) int { return max(lo, min(hi, v)) }
 
 func (a *app) key(k sdl.Keycode) {
+	if a.keysOpen { // any key closes the key sheet
+		a.keysOpen = false
+		return
+	}
+	if k == sdl.K_F1 || k == sdl.K_QUESTION {
+		a.keysOpen = true
+		return
+	}
 	if k == sdl.K_ESCAPE {
 		a.menuOpen = !a.menuOpen
 		a.cfg.save()
@@ -420,7 +429,9 @@ func (a *app) frame(dt float64) {
 	a.r.SetDrawColor(255, 210, 74, 40)
 	a.r.DrawLine(0, gy, w, gy)
 	a.hits = a.hits[:0]
-	if a.menuOpen {
+	if a.keysOpen {
+		a.drawKeys(w, h)
+	} else if a.menuOpen {
 		a.drawMenu(w, h, heard, status)
 	} else if a.mouseActive() {
 		a.drawBar(w, h)
@@ -432,7 +443,7 @@ func (a *app) frame(dt float64) {
 		flip = sdl.FLIP_HORIZONTAL
 	}
 	_ = a.r.CopyEx(a.target2, nil, nil, 0, nil, flip)
-	if a.menuOpen || a.mouseActive() {
+	if a.menuOpen || a.keysOpen || a.mouseActive() {
 		a.drawCursor(h)
 	}
 	a.r.Present()

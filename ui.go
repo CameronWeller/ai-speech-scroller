@@ -111,7 +111,9 @@ func (a *app) rows() []row {
 			dec: func() { a.cfg.Guide = clamp(a.cfg.Guide-3, 10, 70) }, inc: func() { a.cfg.Guide = clamp(a.cfg.Guide+3, 10, 70) }},
 		{label: "Mirror", value: func() string { return onoff(a.cfg.Mirror) }, toggle: func() { a.cfg.Mirror = !a.cfg.Mirror }},
 		{label: "Script", btns: []rbtn{{"Paste clipboard", a.pasteScript}, {"Open file...", a.openScript}}},
+		{label: "Nudge", btns: []rbtn{{"Back 1 word", func() { a.nudge(-1) }}, {"Forward 1 word", func() { a.nudge(1) }}}},
 		{label: "Position", btns: []rbtn{{"Restart", func() { a.nudge(-1 << 30) }}, {"Back 5", func() { a.nudge(-5) }}, {"Forward 5", func() { a.nudge(5) }}}},
+		{label: "Help", btns: []rbtn{{"Key sheet (F1)", func() { a.keysOpen = true }}}},
 		{label: "", btns: []rbtn{{"Close menu", func() { a.menuOpen = false; a.cfg.save() }}, {"Quit", func() { a.quit = true }}}},
 	}
 }
@@ -270,4 +272,60 @@ func (a *app) drawCursor(h int32) {
 	}
 	fill(int(a.mx)-3, int(a.my)-3, s+6, sdl.Color{A: 255})
 	fill(int(a.mx), int(a.my), s, sdl.Color{R: 255, G: 255, B: 255, A: 255})
+}
+
+// ---- key sheet ----
+
+type binding struct {
+	caps []string
+	desc string
+}
+
+var bindings = []binding{
+	{[]string{"Esc"}, "Open / close the menu"},
+	{[]string{"Space"}, "Pause / resume listening"},
+	{[]string{"←", "→"}, "Back / forward 5 words"},
+	{[]string{"↑", "↓"}, "Back / forward 1 word"},
+	{[]string{"Home"}, "Restart the script"},
+	{[]string{"Wheel"}, "Nudge the position"},
+	{[]string{"+", "-"}, "Text size"},
+	{[]string{"M"}, "Mirror the screen"},
+	{[]string{"Ctrl", "V"}, "Paste a script from the clipboard"},
+	{[]string{"Ctrl", "O"}, "Open a script file"},
+	{[]string{"F1", "?"}, "Show this sheet"},
+	{[]string{"Enter"}, "In the menu: ↑↓ select, ←→ change, Enter act"},
+}
+
+func (a *app) cap(label string, px, x, y int) int {
+	k := faceKey{px: px}
+	w := a.gl.measure(k, label) + px
+	h := a.gl.lineHeight(k) + 6
+	a.r.SetDrawColor(24, 28, 34, 255)
+	a.r.FillRect(&sdl.Rect{X: int32(x), Y: int32(y + 4), W: int32(w), H: int32(h)})
+	a.r.SetDrawColor(70, 80, 96, 255)
+	a.r.FillRect(&sdl.Rect{X: int32(x), Y: int32(y), W: int32(w), H: int32(h)})
+	a.gl.draw(k, label, x+px/2, y+3, colUpcoming)
+	return w
+}
+
+func (a *app) drawKeys(w, h int32) {
+	a.r.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
+	a.r.SetDrawColor(0, 0, 0, 240)
+	a.r.FillRect(&sdl.Rect{W: w, H: h})
+	a.hits = append(a.hits, hit{sdl.Rect{W: w, H: h}, func() { a.keysOpen = false }})
+	n := (len(bindings) + 1) / 2
+	rh := min((int(h)-90)/n, 70)
+	px := rh * 45 / 100
+	title := faceKey{px: max(20, px*3/2)}
+	a.gl.draw(title, "Keys", 40, 14, colAccent)
+	colW := (int(w) - 80) / 2
+	for i, b := range bindings {
+		x := 40 + (i/n)*colW
+		y := 20 + a.gl.lineHeight(title) + (i%n)*rh
+		for _, c := range b.caps {
+			x += a.cap(c, px, x, y) + px/3
+		}
+		a.gl.draw(faceKey{px: px}, b.desc, 40+(i/n)*colW+colW*40/100, y+3, colUpcoming)
+	}
+	a.gl.draw(faceKey{px: max(14, px*2/3), italic: true}, "Any key or click closes", 40, int(h)-px-10, colDone)
 }
