@@ -1,14 +1,18 @@
-# .deb packaging (low priority groundwork for an apt-updatable install).
-# Built in CI with: nfpm package -p deb -f nfpm.yaml
+# .deb packaging (groundwork for an apt-updatable install). Built in CI: nfpm package -p deb -f nfpm.yaml
 name: ai-speech-scroller
-arch: ${GOARCH}
+arch: amd64
 platform: linux
 version: ${VERSION}
 maintainer: Cameron Weller <20343009+CameronWeller@users.noreply.github.com>
-description: Teleprompter that follows your voice with misread-tolerant speech tracking.
+description: Teleprompter that follows your voice with offline, misread-tolerant speech tracking.
 homepage: https://github.com/CameronWeller/ai-speech-scroller
 license: MIT
+depends:
+  - libsdl2-2.0-0
 contents:
   - src: pkg/ai-speech-scroller
     dst: /usr/bin/ai-speech-scroller
     file_info: { mode: 0755 }
+  - src: lib/libvosk.so
+    dst: /usr/lib/ai-speech-scroller/libvosk.so
+    file_info: { mode: 0644 }

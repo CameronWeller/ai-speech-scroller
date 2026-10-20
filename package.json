@@ -1,8 +1,0 @@
-{
-  "name": "ai-speech-scroller",
-  "version": "0.1.0",
-  "description": "Teleprompter that follows your voice: misread-tolerant speech tracking that autoscrolls a script.",
-  "type": "module",
-  "license": "MIT",
-  "scripts": { "test": "node --test" }
-}

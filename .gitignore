@@ -1,4 +1,5 @@
-ai-speech-scroller
+/ai-speech-scroller
+/wavtest
 dist/
-web/vendor/*
-!web/vendor/.keep
+lib/*.so
+internal/asr/model.tar.gz

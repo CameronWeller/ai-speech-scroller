@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-# Run on the main desktop; the prompter goes fullscreen on the named monitor (default HDMI-1).
-exec "$(dirname "$0")/../ai-speech-scroller" -monitor "${1:-HDMI-1}"
+# Run the prompter on the Neewer teleprompter display (matched by name) with the given script.
+exec "$(dirname "$0")/../ai-speech-scroller" -display "${DISPLAY_MATCH:-HJW}" "$@"

@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Fetch the offline speech engine (vosk-browser, Apache-2.0) and the small English
-# model (vosk-model-small-en-us-0.15, Apache-2.0) into web/vendor/ so they embed in the binary.
+# Fetch libvosk (Apache-2.0) into lib/ and the small English model (Apache-2.0) into
+# internal/asr/model.tar.gz, which the binary embeds.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-V=web/vendor; mkdir -p "$V"
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
-if [ ! -f "$V/vosk.js" ]; then
-  (cd "$tmp" && npm pack vosk-browser@0.0.8 --silent && tar xzf vosk-browser-*.tgz)
-  cp "$tmp/package/dist/vosk.js" "$V/vosk.js"
+if [ ! -f lib/libvosk.so ]; then
+  mkdir -p lib
+  curl -fsSL -o "$tmp/vosk.zip" https://github.com/alphacep/vosk-api/releases/download/v0.3.45/vosk-linux-x86_64-0.3.45.zip
+  unzip -q -j "$tmp/vosk.zip" '*/libvosk.so' -d lib
 fi
-if [ ! -f "$V/model.tar.gz" ]; then
+if [ ! -f internal/asr/model.tar.gz ]; then
   curl -fsSL -o "$tmp/m.zip" https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
-  (cd "$tmp" && unzip -q m.zip && tar czf "$OLDPWD/$V/model.tar.gz" vosk-model-small-en-us-0.15)
+  (cd "$tmp" && unzip -q m.zip && tar czf "$OLDPWD/internal/asr/model.tar.gz" vosk-model-small-en-us-0.15)
 fi
-ls -lh "$V"
+ls -lh lib internal/asr/model.tar.gz
