@@ -110,6 +110,7 @@ func (a *app) rows() []row {
 		{label: "Reading line", value: func() string { return fmt.Sprintf("%d%%", a.cfg.Guide) },
 			dec: func() { a.cfg.Guide = clamp(a.cfg.Guide-3, 10, 70) }, inc: func() { a.cfg.Guide = clamp(a.cfg.Guide+3, 10, 70) }},
 		{label: "Mirror", value: func() string { return onoff(a.cfg.Mirror) }, toggle: func() { a.cfg.Mirror = !a.cfg.Mirror }},
+		{label: "Script", btns: []rbtn{{"Paste clipboard", a.pasteScript}, {"Open file...", a.openScript}}},
 		{label: "Position", btns: []rbtn{{"Restart", func() { a.nudge(-1 << 30) }}, {"Back 5", func() { a.nudge(-5) }}, {"Forward 5", func() { a.nudge(5) }}}},
 		{label: "", btns: []rbtn{{"Close menu", func() { a.menuOpen = false; a.cfg.save() }}, {"Quit", func() { a.quit = true }}}},
 	}
@@ -197,7 +198,7 @@ func (a *app) drawMenu(w, h int32, heard, status string) {
 		y += rh
 	}
 	small := faceKey{px: max(14, px*2/3), italic: true}
-	msg := "Esc closes  |  mouse, or arrows + Enter  |  heard: " + heard
+	msg := "Esc closes  |  Ctrl+V paste script, Ctrl+O open  |  heard: " + heard
 	if status != "" {
 		msg = status
 	}

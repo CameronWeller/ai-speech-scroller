@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -47,10 +49,11 @@ type app struct {
 	gl  *glyphs
 	eng *asr.Engine
 
-	mu     sync.Mutex // guards m, heard, status
-	m      *match.Matcher
-	heard  string
-	status string
+	mu      sync.Mutex // guards m, heard, status
+	m       *match.Matcher
+	heard   string
+	status  string
+	pending string // script path chosen in a file dialog, picked up by the main loop
 
 	micIdx    int // -1 = system default
 	dispIdx   int
@@ -303,6 +306,14 @@ func (a *app) key(k sdl.Keycode) {
 		return
 	}
 	switch k {
+	case sdl.K_v:
+		if sdl.GetModState()&sdl.KMOD_CTRL != 0 {
+			a.pasteScript()
+		}
+	case sdl.K_o:
+		if sdl.GetModState()&sdl.KMOD_CTRL != 0 {
+			a.openScript()
+		}
 	case sdl.K_SPACE:
 		a.toggleListening()
 	case sdl.K_LEFT:
@@ -459,6 +470,13 @@ func (a *app) loop() {
 				}
 			}
 		}
+		a.mu.Lock()
+		p := a.pending
+		a.pending = ""
+		a.mu.Unlock()
+		if p != "" {
+			a.useScript(p)
+		}
 		if time.Since(lastPoll) > time.Second {
 			lastPoll = time.Now()
 			if st, err := os.Stat(a.path); a.path != "" && err == nil && st.ModTime() != a.mt {
@@ -476,4 +494,57 @@ func (a *app) mouseAt(x, y int32) {
 	ww, wh := a.win.GetSize()
 	ow, oh, _ := a.r.GetOutputSize()
 	a.mx, a.my, a.lastMove = x*ow/max(ww, 1), y*oh/max(wh, 1), time.Now()
+}
+
+// pasteScript replaces the script with the clipboard text (saved so it survives restarts and reloads).
+func (a *app) pasteScript() {
+	text, err := sdl.GetClipboardText()
+	if err != nil || strings.TrimSpace(text) == "" {
+		a.setStatus("Clipboard is empty")
+		return
+	}
+	dir := filepath.Dir(configPath())
+	_ = os.MkdirAll(dir, 0o755)
+	p := filepath.Join(dir, "pasted.txt")
+	if err := os.WriteFile(p, []byte(text), 0o644); err != nil {
+		a.setStatus(err.Error())
+		return
+	}
+	a.useScript(p)
+	a.setStatus("Pasted script loaded")
+}
+
+// openScript asks the desktop for a file via zenity or kdialog.
+func (a *app) openScript() {
+	var cmd *exec.Cmd
+	if p, err := exec.LookPath("zenity"); err == nil {
+		cmd = exec.Command(p, "--file-selection", "--title=Open script")
+	} else if p, err := exec.LookPath("kdialog"); err == nil {
+		cmd = exec.Command(p, "--getopenfilename")
+	} else {
+		a.setStatus("No file dialog found (install zenity), or pass the file on the command line")
+		return
+	}
+	go func() { // keep the prompter responsive while the dialog is open
+		out, err := cmd.Output()
+		if p := strings.TrimSpace(string(out)); err == nil && p != "" {
+			a.mu.Lock()
+			a.pending = p
+			a.mu.Unlock()
+		}
+	}()
+}
+
+func (a *app) useScript(p string) {
+	a.path = p
+	a.cfg.Script = p
+	a.cfg.save()
+	a.loadScript()
+	a.nudge(-1 << 30)
+}
+
+func (a *app) setStatus(s string) {
+	a.mu.Lock()
+	a.status = s
+	a.mu.Unlock()
 }

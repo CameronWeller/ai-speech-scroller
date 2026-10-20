@@ -15,7 +15,7 @@ ai-speech-scroller -display HJW script.txt # pick a screen by index or part of i
 ai-speech-scroller -mic "USB Audio" script.txt
 ```
 
-Editing the script file while it runs reloads it. `[bracketed]` text and lines starting with `→`
+Change the script from the menu (**Script: Paste clipboard / Open file...**) or with `Ctrl+V` (paste) and `Ctrl+O` (open). Editing the script file while it runs reloads it. `[bracketed]` text and lines starting with `→`
 are stage directions: shown dim, never expected to be spoken.
 
 **Esc opens the menu**: listening on/off, microphone, screen, text size, column width, reading
