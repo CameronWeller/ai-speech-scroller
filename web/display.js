@@ -10,9 +10,10 @@ let guide = 0.38;    // reading line as a fraction of viewport height
 
 function setScript(text) {
   $text.textContent = "";
-  spans = tokenize(text).map((t) => {
+  spans = tokenize(text).map((t, i) => {
+    if (i > 0) for (let k = 0; k < Math.min(t.br, 2); k++) $text.appendChild(document.createElement("br"));
     const s = document.createElement("span");
-    s.className = "w";
+    s.className = "w" + (t.cue ? " cue" : "");
     s.textContent = t.raw + " ";
     $text.appendChild(s);
     return s;

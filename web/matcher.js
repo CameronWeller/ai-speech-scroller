@@ -17,13 +17,31 @@ export function normalize(word) {
     .replace(/[^\p{L}\p{N}]+/gu, "");
 }
 
-/** Split script text into display tokens; `spoken` tokens have a normalized form. */
+/**
+ * Split script text into display tokens. `spoken` tokens have a normalized form.
+ * Stage directions are not spoken: text in [brackets] and lines starting with [, → or ->.
+ * `br` counts line breaks before a token so the display can keep the script's layout.
+ */
 export function tokenize(text) {
   const out = [];
-  for (const raw of text.split(/\s+/)) {
-    if (!raw) continue;
-    const norm = normalize(raw);
-    out.push({ raw, norm, spoken: norm.length > 0 });
+  let br = 0;
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.trim()) { br++; continue; }
+    const cueLine = /^\s*(→|->|\[)/.test(line);
+    let inBracket = false;
+    let first = true;
+    for (const raw of line.split(/\s+/)) {
+      if (!raw) continue;
+      const opens = raw.includes("[");
+      const closes = raw.includes("]");
+      if (opens) inBracket = true;
+      const cue = cueLine || inBracket;
+      const norm = cue ? "" : normalize(raw);
+      out.push({ raw, norm, spoken: norm.length > 0, cue, br: first ? br + 1 : 0 });
+      first = false;
+      if (closes) inBracket = false;
+    }
+    br = 0;
   }
   return out;
 }

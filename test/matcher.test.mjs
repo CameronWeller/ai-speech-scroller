@@ -71,3 +71,10 @@ test("punctuation-only tokens are not spoken words", () => {
   m.feed(["hello"]);
   assert.equal(m.tokenPos, 2);
 });
+
+test("stage directions are not spoken", () => {
+  const m = createMatcher("[A-cam] CLOSE\n\nAnd it costs less.\n\n→ GFX 9 · Price\n\nTry it now.");
+  assert.deepEqual(m.words, ["and", "it", "costs", "less", "try", "it", "now"]);
+  m.feed(["less", "try"]);
+  assert.equal(m.words[m.pos - 1], "try");
+});

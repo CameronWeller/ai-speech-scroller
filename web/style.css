@@ -11,7 +11,7 @@ body.mirror #viewport { transform:scaleX(-1); }
 .w { color:var(--fg); transition:color .25s; }
 .w.done { color:var(--dim); }
 .w.now { color:var(--accent); }
-#guide { position:absolute; left:0; right:0; top:var(--guide,38%); height:0; border-top:2px solid #ffd24a33; pointer-events:none; }
+#readline { position:absolute; left:0; right:0; top:var(--guide,38%); height:0; border-top:2px solid #ffd24a33; pointer-events:none; }
 
 /* control */
 main { max-width:960px; margin:0 auto; padding:20px; display:grid; gap:14px; }
@@ -27,3 +27,6 @@ button { cursor:pointer; } button.primary { background:#2b6cff; border-color:#2b
 #menu[hidden] { display:none; }
 #menu h2 { margin:0 0 10px; font-size:28px; } #menu small { color:#9fb0c3; font-weight:400; }
 #menu button { font-size:26px; padding:14px 28px; min-width:360px; }
+.w.cue { font-size:.5em; font-weight:400; font-style:italic; color:#3d4650; }
+.w.cue.now, .w.cue.done { color:#3d4650; }
+input[type=range] { width:140px; padding:0; }

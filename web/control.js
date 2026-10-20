@@ -83,25 +83,33 @@ try {
   const s = JSON.parse(localStorage.getItem("style") || "null");
   if (s) { $("size").value = s.s; $("column").value = s.c; $("guide").value = s.g; $("mirror").checked = s.m; }
 } catch {}
-async function listScreens() {
-  if (!window.getScreenDetails) { $("open").disabled = true; return; }
-  try {
-    const d = await getScreenDetails();
-    $("screen").innerHTML = "";
-    d.screens.forEach((sc, i) => $("screen").add(new Option(`${sc.label || "Screen " + (i + 1)} (${sc.width}x${sc.height})`, i)));
-    const saved = localStorage.getItem("screen");
-    const idx = d.screens.findIndex((sc) => sc.label === saved);
-    if (idx >= 0) $("screen").value = idx;
-    $("screen").onchange = () => localStorage.setItem("screen", d.screens[$("screen").value].label);
-    $("open").onclick = () => {
-      const sc = d.screens[$("screen").value];
-      localStorage.setItem("screen", sc.label);
-      const w = window.open("/display.html", "prompter",
-        `popup,left=${sc.availLeft},top=${sc.availTop},width=${sc.availWidth},height=${sc.availHeight}`);
-      w?.addEventListener("load", () => w.document.documentElement.requestFullscreen({ screen: sc }).catch(() => {}));
-    };
-  } catch { setStatus("Allow window management to choose the teleprompter screen"); }
+let screens = null;
+async function loadScreens() {
+  screens ??= await getScreenDetails();
+  const list = screens.screens;
+  $("screen").innerHTML = "";
+  list.forEach((sc, i) => $("screen").add(new Option(`${sc.label || "Screen " + (i + 1)} (${sc.width}x${sc.height})`, i)));
+  const idx = list.findIndex((sc) => sc.label === localStorage.getItem("screen"));
+  if (idx >= 0) $("screen").value = idx;
+  return list;
 }
+async function openPrompter() {
+  if (!window.getScreenDetails) { setStatus("This browser has no window-management API; use Chrome"); return; }
+  try {
+    const list = await loadScreens(); // first click prompts for permission
+    const sc = list[$("screen").value];
+    localStorage.setItem("screen", sc.label);
+    const w = window.open("/display.html", "prompter",
+      `popup,left=${sc.availLeft},top=${sc.availTop},width=${sc.availWidth},height=${sc.availHeight}`);
+    w?.addEventListener("load", () => w.document.documentElement.requestFullscreen({ screen: sc }).catch(() => {}));
+    setStatus("Prompter opened. Click it or press F for fullscreen, Esc for the menu");
+  } catch (e) { setStatus("Allow window management for this page, then press Open prompter again (" + e.name + ")"); }
+}
+$("open").onclick = openPrompter;
+$("screen").onchange = () => { if (screens) localStorage.setItem("screen", screens.screens[$("screen").value].label); };
+// Fill the screen list now if permission was already granted; otherwise wait for the button.
+navigator.permissions?.query({ name: "window-management" }).then((p) => p.state === "granted" && loadScreens()).catch(() => {});
+
 new EventSource("/events").addEventListener("message", (e) => {
   const m = JSON.parse(e.data);
   if (m.type !== "cmd") return;
@@ -113,7 +121,6 @@ new EventSource("/events").addEventListener("message", (e) => {
     listen: () => $("listen").click(),
   })[m.action]?.();
 });
-listScreens();
 listMics();
 pushStyle();
 if ($("script").value) loadScript();
