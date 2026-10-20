@@ -1,0 +1,25 @@
+<!doctype html>
+<meta charset="utf-8"><title>Speech Scroller</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="style.css">
+<body><main>
+  <h1>AI Speech Scroller</h1>
+  <textarea id="script" placeholder="Paste your script here"></textarea>
+  <div class="row">
+    <button id="load" class="primary">Load script</button>
+    <select id="mic" title="Microphone"></select>
+    <button id="listen">Start listening</button>
+    <button id="back">◀ 5 words</button><button id="fwd">5 words ▶</button>
+    <button id="restart">Restart</button>
+    <span id="status">Idle</span>
+  </div>
+  <div class="row">
+    <label>Size <input id="size" type="range" min="32" max="160" value="72"></label>
+    <label>Width <input id="column" type="range" min="40" max="95" value="80"></label>
+    <label>Reading line <input id="guide" type="range" min="15" max="60" value="38"></label>
+    <label><input id="mirror" type="checkbox"> Mirror (beam-splitter glass)</label>
+  </div>
+  <div id="heard">Heard words appear here.</div>
+</main>
+<script src="vendor/vosk.js"></script>
+<script type="module" src="control.js"></script>

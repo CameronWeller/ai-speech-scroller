@@ -1,0 +1,4 @@
+ai-speech-scroller
+dist/
+web/vendor/*
+!web/vendor/.keep
