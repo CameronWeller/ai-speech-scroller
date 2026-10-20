@@ -58,6 +58,10 @@ type app struct {
 
 	menuOpen bool
 	menuSel  int
+	menuSub  int
+	hits     []hit
+	mx, my   int32 // mouse position in window pixels
+	lastMove time.Time
 
 	words      []placed
 	lineH      int
@@ -197,7 +201,7 @@ func (a *app) setup(windowed bool) {
 	if a.r, err = sdl.CreateRenderer(a.win, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC|sdl.RENDERER_TARGETTEXTURE); err != nil {
 		fatal(err)
 	}
-	sdl.ShowCursor(sdl.DISABLE)
+	sdl.ShowCursor(sdl.DISABLE) // we draw our own large cursor
 	sdl.DisableScreenSaver()
 	a.gl = newGlyphs(a.r)
 }
@@ -288,51 +292,6 @@ func (a *app) cycleMic(d int) {
 
 func clamp(v, lo, hi int) int { return max(lo, min(hi, v)) }
 
-type menuItem struct {
-	label func() string
-	act   func(dir int) // dir: -1 left, 0 enter, +1 right
-}
-
-func (a *app) menu() []menuItem {
-	onoff := func(b bool) string {
-		if b {
-			return "on"
-		}
-		return "off"
-	}
-	micName := func() string {
-		if a.micIdx < 0 {
-			return "system default"
-		}
-		return a.eng.Mics()[a.micIdx].Name
-	}
-	return []menuItem{
-		{func() string { return "Listening: " + onoff(a.listening) }, func(int) { a.toggleListening() }},
-		{func() string { return "Microphone: " + micName() }, func(d int) { a.cycleMic(max(d, 1) * sign(d, 1)) }},
-		{func() string { return "Screen: " + displayName(a.dispIdx) }, func(d int) {
-			n, _ := sdl.GetNumVideoDisplays()
-			a.moveToDisplay((a.dispIdx + max(d, 1)*sign(d, 1) + n) % n)
-		}},
-		{func() string { return fmt.Sprintf("Text size: %d", a.cfg.Size) }, func(d int) { a.cfg.Size = clamp(a.cfg.Size+4*sign(d, 1), 24, 240) }},
-		{func() string { return fmt.Sprintf("Column width: %d%%", a.cfg.Column) }, func(d int) { a.cfg.Column = clamp(a.cfg.Column+5*sign(d, 1), 30, 98) }},
-		{func() string { return fmt.Sprintf("Reading line: %d%%", a.cfg.Guide) }, func(d int) { a.cfg.Guide = clamp(a.cfg.Guide+3*sign(d, 1), 10, 70) }},
-		{func() string { return "Mirror: " + onoff(a.cfg.Mirror) }, func(int) { a.cfg.Mirror = !a.cfg.Mirror }},
-		{func() string { return "Restart script" }, func(int) { a.nudge(-1 << 30) }},
-		{func() string { return "Back 5 words" }, func(int) { a.nudge(-5) }},
-		{func() string { return "Forward 5 words" }, func(int) { a.nudge(5) }},
-		{func() string { return "Close menu" }, func(int) { a.menuOpen = false }},
-		{func() string { return "Quit" }, func(int) { a.quit = true }},
-	}
-}
-
-// sign maps an adjust direction to a step: Enter (0) behaves like "right".
-func sign(d, _ int) int {
-	if d < 0 {
-		return -1
-	}
-	return 1
-}
-
 func (a *app) key(k sdl.Keycode) {
 	if k == sdl.K_ESCAPE {
 		a.menuOpen = !a.menuOpen
@@ -340,19 +299,7 @@ func (a *app) key(k sdl.Keycode) {
 		return
 	}
 	if a.menuOpen {
-		items := a.menu()
-		switch k {
-		case sdl.K_UP:
-			a.menuSel = (a.menuSel + len(items) - 1) % len(items)
-		case sdl.K_DOWN:
-			a.menuSel = (a.menuSel + 1) % len(items)
-		case sdl.K_LEFT:
-			items[a.menuSel].act(-1)
-		case sdl.K_RIGHT:
-			items[a.menuSel].act(1)
-		case sdl.K_RETURN, sdl.K_SPACE, sdl.K_KP_ENTER:
-			items[a.menuSel].act(0)
-		}
+		a.menuKey(k)
 		return
 	}
 	switch k {
@@ -461,16 +408,22 @@ func (a *app) frame(dt float64) {
 	gy := int32(float64(h) * float64(a.cfg.Guide) / 100)
 	a.r.SetDrawColor(255, 210, 74, 40)
 	a.r.DrawLine(0, gy, w, gy)
-	a.hud(w, h)
+	a.hits = a.hits[:0]
 	if a.menuOpen {
 		a.drawMenu(w, h, heard, status)
+	} else if a.mouseActive() {
+		a.drawBar(w, h)
 	}
+	a.dot(w)
 	_ = a.r.SetRenderTarget(nil)
 	flip := sdl.FLIP_NONE
 	if a.cfg.Mirror {
 		flip = sdl.FLIP_HORIZONTAL
 	}
 	_ = a.r.CopyEx(a.target2, nil, nil, 0, nil, flip)
+	if a.menuOpen || a.mouseActive() {
+		a.drawCursor(h)
+	}
 	a.r.Present()
 }
 
@@ -478,50 +431,6 @@ func (a *app) curTok() int {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	return a.m.TokenPos()
-}
-
-// hud draws a small status dot: green while listening, grey when paused.
-func (a *app) hud(w, h int32) {
-	c := sdl.Color{R: 90, G: 100, B: 112, A: 255}
-	if a.listening {
-		c = sdl.Color{R: 70, G: 200, B: 110, A: 255}
-	}
-	a.r.SetDrawColor(c.R, c.G, c.B, 255)
-	a.r.FillRect(&sdl.Rect{X: w - 36, Y: 20, W: 14, H: 14})
-}
-
-func (a *app) drawMenu(w, h int32, heard, status string) {
-	a.r.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
-	a.r.SetDrawColor(0, 0, 0, 225)
-	a.r.FillRect(&sdl.Rect{W: w, H: h})
-	items := a.menu()
-	px := 40
-	k := faceKey{px: px}
-	lh := a.gl.lineHeight(k) + 14
-	total := lh * (len(items) + 3)
-	y := (int(h) - total) / 2
-	small := faceKey{px: 24, italic: true}
-	a.gl.draw(small, "Esc closes   ↑↓ select   ←→ change   Enter activate", int(w)/2-a.gl.measure(small, "Esc closes   ↑↓ select   ←→ change   Enter activate")/2, y, colDone)
-	y += lh
-	for i, it := range items {
-		c := colUpcoming
-		if i == a.menuSel {
-			c = colAccent
-		}
-		s := it.label()
-		if i == a.menuSel {
-			s = "▶ " + s
-		} else {
-			s = "   " + s
-		}
-		a.gl.draw(k, s, int(w)/2-420, y, c)
-		y += lh
-	}
-	msg := "heard: " + heard
-	if status != "" {
-		msg = status
-	}
-	a.gl.draw(small, msg, int(w)/2-420, y+10, colDone)
 }
 
 func (a *app) loop() {
@@ -532,6 +441,18 @@ func (a *app) loop() {
 			switch e := ev.(type) {
 			case *sdl.QuitEvent:
 				a.quit = true
+			case *sdl.MouseMotionEvent:
+				a.mouseAt(e.X, e.Y)
+			case *sdl.MouseButtonEvent:
+				a.mouseAt(e.X, e.Y)
+				if e.Type == sdl.MOUSEBUTTONDOWN && e.Button == sdl.BUTTON_LEFT {
+					a.click()
+				}
+			case *sdl.MouseWheelEvent:
+				a.lastMove = time.Now()
+				if !a.menuOpen {
+					a.nudge(-int(e.Y))
+				}
 			case *sdl.KeyboardEvent:
 				if e.Type == sdl.KEYDOWN {
 					a.key(e.Keysym.Sym)
@@ -548,4 +469,11 @@ func (a *app) loop() {
 		a.frame(now.Sub(last).Seconds())
 		last = now
 	}
+}
+
+// mouseAt records the mouse position in output pixels (window units can differ on HiDPI).
+func (a *app) mouseAt(x, y int32) {
+	ww, wh := a.win.GetSize()
+	ow, oh, _ := a.r.GetOutputSize()
+	a.mx, a.my, a.lastMove = x*ow/max(ww, 1), y*oh/max(wh, 1), time.Now()
 }
