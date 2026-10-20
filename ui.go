@@ -58,6 +58,9 @@ func (a *app) button(r sdl.Rect, label string, px int, on bool, fn func()) {
 	a.r.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
 	a.r.SetDrawColor(c.R, c.G, c.B, 255)
 	a.r.FillRect(&r)
+	for px > 10 && a.gl.measure(faceKey{px: px}, label) > int(r.W)-12 {
+		px-- // shrink to fit the button
+	}
 	k := faceKey{px: px}
 	tw := a.gl.measure(k, label)
 	a.gl.draw(k, label, int(r.X)+(int(r.W)-tw)/2, int(r.Y)+(int(r.H)-a.gl.lineHeight(k))/2, colUpcoming)
@@ -213,7 +216,7 @@ func (a *app) drawBar(w, h int32) {
 		fn    func()
 	}
 	items := []b{
-		{"Listen " + onoff(a.listening), a.listening, a.toggleListening},
+		{"Mic " + onoff(a.listening), a.listening, a.toggleListening},
 		{"Restart", false, func() { a.nudge(-1 << 30) }},
 		{"< 5", false, func() { a.nudge(-5) }},
 		{"5 >", false, func() { a.nudge(5) }},
@@ -224,6 +227,11 @@ func (a *app) drawBar(w, h int32) {
 	}
 	gap := int32(8)
 	bw := (w - 28 - gap*int32(len(items)-1)) / int32(len(items))
+	for _, it := range items { // one text size for the whole bar: the largest that fits every label
+		for px > 10 && a.gl.measure(faceKey{px: px}, it.label) > int(bw)-12 {
+			px--
+		}
+	}
 	a.r.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
 	a.r.SetDrawColor(0, 0, 0, 200)
 	a.r.FillRect(&sdl.Rect{X: 0, Y: y - 10, W: w, H: bh + 24})
