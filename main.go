@@ -397,7 +397,7 @@ func (a *app) frame(dt float64) {
 	a.mu.Unlock()
 	if len(a.words) > 0 {
 		tp = min(tp, len(a.words)-1)
-		a.target = float64(a.words[tp].y+a.lineH/2) - float64(h)*float64(a.cfg.Guide)/100
+		a.target = float64(a.words[tp].y) - float64(h)*float64(a.cfg.Guide)/100 - 8 // current line sits just below the reading line
 		a.target = math.Max(a.target, -float64(h)*float64(a.cfg.Guide)/100)
 	}
 	a.offset += (a.target - a.offset) * (1 - math.Exp(-dt*6))
@@ -425,8 +425,10 @@ func (a *app) frame(dt float64) {
 		a.gl.draw(k, toks[p.tok].Raw, p.x, y, c)
 	}
 	gy := int32(float64(h) * float64(a.cfg.Guide) / 100)
-	a.r.SetDrawColor(255, 210, 74, 40)
+	a.r.SetDrawColor(255, 210, 74, 90)
 	a.r.DrawLine(0, gy, w, gy)
+	a.r.SetDrawColor(255, 210, 74, 255)
+	a.r.FillRect(&sdl.Rect{X: 0, Y: gy + 8, W: 10, H: int32(a.lineH)}) // marker beside the current line
 	a.hits = a.hits[:0]
 	if a.keysOpen {
 		a.drawKeys(w, h)
