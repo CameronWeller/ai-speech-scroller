@@ -9,6 +9,6 @@ description: Teleprompter that follows your voice with misread-tolerant speech t
 homepage: https://github.com/CameronWeller/ai-speech-scroller
 license: MIT
 contents:
-  - src: dist/ai-speech-scroller-linux-${GOARCH}
+  - src: pkg/ai-speech-scroller
     dst: /usr/bin/ai-speech-scroller
     file_info: { mode: 0755 }

@@ -22,3 +22,8 @@ button,select,input { background:#1a2028; color:var(--fg); border:1px solid #2a3
 button { cursor:pointer; } button.primary { background:#2b6cff; border-color:#2b6cff; }
 #heard { min-height:3em; padding:10px 12px; background:#12161b; border-radius:8px; color:#9fb0c3; }
 #status { color:#9fb0c3; } label { display:flex; gap:6px; align-items:center; }
+
+#menu { position:fixed; inset:0; background:#000d; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; z-index:9; }
+#menu[hidden] { display:none; }
+#menu h2 { margin:0 0 10px; font-size:28px; } #menu small { color:#9fb0c3; font-weight:400; }
+#menu button { font-size:26px; padding:14px 28px; min-width:360px; }

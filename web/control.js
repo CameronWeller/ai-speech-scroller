@@ -30,11 +30,19 @@ function heard(words, final) {
 }
 
 async function listMics() {
+  // Labels are blank until the page has mic permission, so ask once, then list.
   try { (await navigator.mediaDevices.getUserMedia({ audio: true })).getTracks().forEach((t) => t.stop()); } catch {}
-  const devs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "audioinput");
+  const devs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "audioinput" && d.deviceId !== "communications");
+  const saved = localStorage.getItem("mic");
   $("mic").innerHTML = "";
-  devs.forEach((d) => $("mic").add(new Option(d.label || d.deviceId, d.deviceId)));
+  devs.forEach((d, i) => $("mic").add(new Option(d.label || `Input ${i + 1}`, d.deviceId)));
+  if (devs.some((d) => d.deviceId === saved)) $("mic").value = saved;
 }
+$("mic").onchange = async () => {
+  localStorage.setItem("mic", $("mic").value);
+  if (stream) { stopListening(); await startListening().catch((e) => setStatus(String(e))); } // switch live
+};
+navigator.mediaDevices.addEventListener?.("devicechange", listMics);
 
 async function startListening() {
   if (!window.Vosk) { setStatus("Speech model missing: run scripts/fetch-assets.sh and rebuild"); return; }
@@ -75,6 +83,37 @@ try {
   const s = JSON.parse(localStorage.getItem("style") || "null");
   if (s) { $("size").value = s.s; $("column").value = s.c; $("guide").value = s.g; $("mirror").checked = s.m; }
 } catch {}
+async function listScreens() {
+  if (!window.getScreenDetails) { $("open").disabled = true; return; }
+  try {
+    const d = await getScreenDetails();
+    $("screen").innerHTML = "";
+    d.screens.forEach((sc, i) => $("screen").add(new Option(`${sc.label || "Screen " + (i + 1)} (${sc.width}x${sc.height})`, i)));
+    const saved = localStorage.getItem("screen");
+    const idx = d.screens.findIndex((sc) => sc.label === saved);
+    if (idx >= 0) $("screen").value = idx;
+    $("screen").onchange = () => localStorage.setItem("screen", d.screens[$("screen").value].label);
+    $("open").onclick = () => {
+      const sc = d.screens[$("screen").value];
+      localStorage.setItem("screen", sc.label);
+      const w = window.open("/display.html", "prompter",
+        `popup,left=${sc.availLeft},top=${sc.availTop},width=${sc.availWidth},height=${sc.availHeight}`);
+      w?.addEventListener("load", () => w.document.documentElement.requestFullscreen({ screen: sc }).catch(() => {}));
+    };
+  } catch { setStatus("Allow window management to choose the teleprompter screen"); }
+}
+new EventSource("/events").addEventListener("message", (e) => {
+  const m = JSON.parse(e.data);
+  if (m.type !== "cmd") return;
+  const bump = (id, d) => { const el = $(id); el.value = Math.max(+el.min, Math.min(+el.max, +el.value + d)); pushStyle(); };
+  ({
+    restart: () => $("restart").click(), back: () => $("back").click(), fwd: () => $("fwd").click(),
+    smaller: () => bump("size", -8), bigger: () => bump("size", 8),
+    mirror: () => { $("mirror").checked = !$("mirror").checked; pushStyle(); },
+    listen: () => $("listen").click(),
+  })[m.action]?.();
+});
+listScreens();
 listMics();
 pushStyle();
 if ($("script").value) loadScript();

@@ -10,10 +10,13 @@ One static binary (Go, no cgo) with the UI, the Vosk speech engine and an Englis
 ## Use
 
 ```bash
-./ai-speech-scroller -monitor HDMI-1     # prompter fullscreen on that monitor (Linux/xrandr)
-./ai-speech-scroller -display-at 10240,0 # or by screen position (any OS)
-./ai-speech-scroller -no-open            # just serve; open /display.html yourself
+./ai-speech-scroller            # serves and opens the control page
 ```
+
+On the control page choose the teleprompter screen and press **Open prompter** (Chrome asks once
+for window-management permission; this works on Wayland). Click the prompter or press `F` if it
+isn't fullscreen. For X11 you can instead launch it directly with `-monitor HDMI-1` or
+`-display-at X,Y`; Wayland Chrome ignores window positions, so use the button there.
 
 The control page opens on your main screen: paste a script, pick a microphone, **Load script**,
 **Start listening**. Size, width, reading-line position and mirror (for beam-splitter glass) apply live.

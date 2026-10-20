@@ -30,6 +30,7 @@ jobs:
         run: |
           go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.41.1
           for a in amd64 arm64; do
+            mkdir -p pkg && cp "dist/ai-speech-scroller-linux-$a" pkg/ai-speech-scroller
             GOARCH=$a VERSION="${GITHUB_REF_NAME#v}" "$(go env GOPATH)/bin/nfpm" package -p deb -f nfpm.yaml -t dist/
           done
       - uses: softprops/action-gh-release@v2

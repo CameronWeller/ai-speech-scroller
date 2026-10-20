@@ -56,3 +56,25 @@ es.onmessage = (e) => {
 };
 window.addEventListener("resize", paint);
 tick();
+
+// Fullscreen on whichever screen this window is on. In fullscreen, lock Esc so it
+// opens the menu instead of leaving fullscreen.
+const $menu = document.getElementById("menu");
+const send = (m) => fetch("/msg", { method: "POST", body: JSON.stringify(m) }).catch(() => {});
+const toggleFull = () =>
+  document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {});
+document.addEventListener("fullscreenchange", () => {
+  if (document.fullscreenElement) navigator.keyboard?.lock?.(["Escape"]).catch(() => {});
+  else navigator.keyboard?.unlock?.();
+});
+window.addEventListener("click", (e) => { if (!$menu.contains(e.target) && !document.fullscreenElement) toggleFull(); });
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") { $menu.hidden = !$menu.hidden; e.preventDefault(); }
+  else if (e.key === "f") toggleFull();
+});
+$menu.addEventListener("click", (e) => {
+  const a = e.target.dataset?.a;
+  if (!a) return;
+  if (a === "fullscreen") toggleFull();
+  else send({ type: "cmd", action: a, n: Date.now() });
+});
