@@ -310,22 +310,37 @@ func (a *app) cap(label string, px, x, y int) int {
 
 func (a *app) drawKeys(w, h int32) {
 	a.r.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
-	a.r.SetDrawColor(0, 0, 0, 240)
+	a.r.SetDrawColor(0, 0, 0, 245)
 	a.r.FillRect(&sdl.Rect{W: w, H: h})
 	a.hits = append(a.hits, hit{sdl.Rect{W: w, H: h}, func() { a.keysOpen = false }})
-	n := (len(bindings) + 1) / 2
-	rh := min((int(h)-90)/n, 70)
-	px := rh * 45 / 100
+	n := len(bindings)
+	rh := min((int(h)-90)/n, 64)
+	px := rh * 50 / 100
+	// Shrink until the key caps and the longest description fit side by side.
+	var capW, descW int
+	for ; px > 10; px-- {
+		k := faceKey{px: px}
+		capW, descW = 0, 0
+		for _, b := range bindings {
+			cw := 0
+			for _, c := range b.caps {
+				cw += a.gl.measure(k, c) + px + px/3
+			}
+			capW, descW = max(capW, cw), max(descW, a.gl.measure(k, b.desc))
+		}
+		if 40+capW+30+descW+20 <= int(w) {
+			break
+		}
+	}
 	title := faceKey{px: max(20, px*3/2)}
-	a.gl.draw(title, "Keys", 40, 14, colAccent)
-	colW := (int(w) - 80) / 2
+	a.gl.draw(title, "Keys", 40, 12, colAccent)
+	y0 := 12 + a.gl.lineHeight(title) + 8
 	for i, b := range bindings {
-		x := 40 + (i/n)*colW
-		y := 20 + a.gl.lineHeight(title) + (i%n)*rh
+		x, y := 40, y0+i*rh
 		for _, c := range b.caps {
 			x += a.cap(c, px, x, y) + px/3
 		}
-		a.gl.draw(faceKey{px: px}, b.desc, 40+(i/n)*colW+colW*40/100, y+3, colUpcoming)
+		a.gl.draw(faceKey{px: px}, b.desc, 40+capW+30, y+3, colUpcoming)
 	}
-	a.gl.draw(faceKey{px: max(14, px*2/3), italic: true}, "Any key or click closes", 40, int(h)-px-10, colDone)
+	a.gl.draw(faceKey{px: max(14, px*2/3), italic: true}, "Any key or click closes", 40, y0+n*rh+6, colDone)
 }
