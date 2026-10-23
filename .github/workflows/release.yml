@@ -25,6 +25,30 @@ jobs:
         run: |
           go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.41.1
           VERSION="${GITHUB_REF_NAME#v}" "$(go env GOPATH)/bin/nfpm" package -p deb -f nfpm.yaml -t dist/
+      - name: Build Flatpak
+        env:
+          APT_SIGNING_KEY: ${{ secrets.APT_SIGNING_KEY }}
+        run: |
+          set -euo pipefail
+          APP=io.github.CameronWeller.AiSpeechScroller
+          sudo apt-get install -y flatpak flatpak-builder gnupg appstream
+          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
+          VER=0.0.0; [[ "$GITHUB_REF" == refs/tags/v* ]] && VER="${GITHUB_REF_NAME#v}"
+          sed -i "s/@VERSION@/$VER/; s/@DATE@/$(date -u +%F)/" flatpak/$APP.metainfo.xml
+          appstreamcli validate --no-net flatpak/$APP.metainfo.xml || true
+          SIGN=()
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "$APT_SIGNING_KEY" | gpg --batch --import
+            KEY=$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr/{print $10; exit}')
+            SIGN=(--gpg-sign="$KEY")
+            echo "FLATPAK_KEY=$KEY" >> "$GITHUB_ENV"
+          fi
+          flatpak-builder --user --force-clean --repo=flatpak-repo --default-branch=stable "${SIGN[@]}" flatpak-build flatpak/$APP.yml
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            flatpak build-update-repo "${SIGN[@]}" flatpak-repo
+            flatpak build-bundle flatpak-repo dist/ai-speech-scroller.flatpak $APP stable
+          fi
       - run: cd dist && sha256sum * > SHA256SUMS
       - uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/v')
@@ -56,4 +80,35 @@ jobs:
           touch .nojekyll
           git add -A
           git -c user.name="github-actions" -c user.email="actions@users.noreply.github.com" commit -m "apt: ${GITHUB_REF_NAME}"
+          git push origin HEAD:gh-pages
+      - name: Publish Flatpak repository (GitHub Pages)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          APP=io.github.CameronWeller.AiSpeechScroller
+          URL=https://cameronweller.github.io/ai-speech-scroller/flatpak/repo
+          cd ../apt
+          rm -rf flatpak && mkdir -p flatpak
+          cp -a "$GITHUB_WORKSPACE/flatpak-repo" flatpak/repo
+          GPGB64=$(gpg --export "$FLATPAK_KEY" | base64 -w0)
+          cat > flatpak/ai-speech-scroller.flatpakrepo <<EOF
+          [Flatpak Repo]
+          Title=AI Speech Scroller
+          Url=$URL
+          Homepage=https://github.com/CameronWeller/ai-speech-scroller
+          GPGKey=$GPGB64
+          EOF
+          cat > flatpak/ai-speech-scroller.flatpakref <<EOF
+          [Flatpak Ref]
+          Title=AI Speech Scroller
+          Name=$APP
+          Branch=stable
+          Url=$URL
+          IsRuntime=false
+          RuntimeRepo=https://dl.flathub.org/repo/flathub.flatpakrepo
+          GPGKey=$GPGB64
+          EOF
+          sed -i 's/^          //' flatpak/*.flatpakrepo flatpak/*.flatpakref
+          git add -A
+          git -c user.name="github-actions" -c user.email="actions@users.noreply.github.com" commit -m "flatpak: ${GITHUB_REF_NAME}"
           git push origin HEAD:gh-pages
