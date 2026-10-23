@@ -13,13 +13,33 @@ display), but it works fullscreen on any screen.
 
 ## Install
 
-Download from the [releases page](https://github.com/CameronWeller/ai-speech-scroller/releases):
+### apt (Ubuntu/Debian, auto-updating)
 
-- **`.deb`** (Ubuntu/Debian): `sudo apt install ./ai-speech-scroller_<version>_amd64.deb`
-  (installs the binary and `libvosk.so`, and pulls in SDL2).
-- **tarball**: unpack, keep `libvosk.so` next to the binary, and install `libsdl2-2.0-0`.
+```bash
+sudo curl -fsSL https://cameronweller.github.io/ai-speech-scroller/ai-speech-scroller.asc \
+  -o /etc/apt/keyrings/ai-speech-scroller.asc
+echo "deb [signed-by=/etc/apt/keyrings/ai-speech-scroller.asc] https://cameronweller.github.io/ai-speech-scroller stable main" \
+  | sudo tee /etc/apt/sources.list.d/ai-speech-scroller.list
+sudo apt update && sudo apt install ai-speech-scroller
+```
 
-Linux x86-64 only for now (Wayland or X11). A hosted apt repository for `apt upgrade` is future work.
+### Flatpak
+
+```bash
+flatpak remote-add --user --if-not-exists ai-speech-scroller \
+  https://cameronweller.github.io/ai-speech-scroller/flatpak/ai-speech-scroller.flatpakrepo
+flatpak install --user ai-speech-scroller io.github.CameronWeller.AiSpeechScroller
+flatpak run io.github.CameronWeller.AiSpeechScroller
+```
+
+Scripts are readable from Documents and Downloads inside the sandbox.
+
+### Direct download
+
+The [releases page](https://github.com/CameronWeller/ai-speech-scroller/releases) has the `.deb`,
+a `.flatpak` bundle, and a tarball (keep `libvosk.so` next to the binary; needs `libsdl2-2.0-0`).
+
+Linux x86-64 only for now (Wayland or X11).
 
 ## Quick start
 

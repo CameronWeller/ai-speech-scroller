@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.CameronWeller.AiSpeechScroller</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>AI Speech Scroller</name>
+  <summary>Teleprompter that follows your voice</summary>
+  <description>
+    <p>A native teleprompter that scrolls as you speak. Speech recognition runs fully offline inside the app, so nothing leaves your machine.</p>
+    <p>The tracker tolerates misread, dropped or garbled words and never jumps backward.</p>
+  </description>
+  <launchable type="desktop-id">io.github.CameronWeller.AiSpeechScroller.desktop</launchable>
+  <url type="homepage">https://github.com/CameronWeller/ai-speech-scroller</url>
+  <url type="bugtracker">https://github.com/CameronWeller/ai-speech-scroller/issues</url>
+  <developer id="io.github.cameronweller"><name>Cameron Weller</name></developer>
+  <content_rating type="oars-1.1"/>
+  <categories><category>AudioVideo</category><category>Video</category></categories>
+  <provides><binary>ai-speech-scroller</binary></provides>
+  <releases>
+    <release version="@VERSION@" date="@DATE@"/>
+  </releases>
+</component>
