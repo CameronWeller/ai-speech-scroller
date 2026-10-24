@@ -1,23 +1,23 @@
 Architectures: amd64
 Codename: stable
 Components: main
-Date: Fri, 23 Oct 2026 04:26:35 +0000
+Date: Sat, 24 Oct 2026 18:53:26 +0000
 Label: ai-speech-scroller
 Origin: CameronWeller
 Suite: stable
 MD5Sum:
- 87e2ec134a2420d27ec958365b11726e              155 Release
- 9e10a25ce7d0282b93238384c7880686              604 main/binary-amd64/Packages
- 95917f9b07b9c8cd930959f184405204              436 main/binary-amd64/Packages.gz
+ 3dc37980a246a6ce1b379f47a70df21c              155 Release
+ 44f19ecdff333f5dca67524ed9801fdd              604 main/binary-amd64/Packages
+ 99551c2592558b87413f0a2e8f52ce3e              438 main/binary-amd64/Packages.gz
 SHA1:
- 53c6fbf53d4d0acfaac2d20050333f5ad6a3f1fb              155 Release
- 22a754ed75d2fce1ac5e467189b35fada1b602c4              604 main/binary-amd64/Packages
- 306a21e02bd0888635aba5ebe1ea0af0c400473e              436 main/binary-amd64/Packages.gz
+ ec90b746e61b709432355799207b2e26ceb565d0              155 Release
+ 5f803618fd1fda32955a09e0ade12bb61cf7119c              604 main/binary-amd64/Packages
+ 5254ec5cd4bfe0332198a1533b5c84c3c19e8348              438 main/binary-amd64/Packages.gz
 SHA256:
- b002dd432de82dec29f3cccb11fcb9b9e6d68c48b8ffb0b447efece06fee29cd              155 Release
- 1c88b7ed62277a7db92f5012c8e02db359a3732eccf7146aea73c18d3ed38d6a              604 main/binary-amd64/Packages
- 07cda6e50581b27bb084fda024ca00dfbab5b244fd7feedb95365cfa782b85f8              436 main/binary-amd64/Packages.gz
+ 45ade684ac94b0e2ebb79f3544f71d0b5d3e1d199d4c34008511daff343a0d20              155 Release
+ 2260de62157f87ab65db2cc7921f3b9f6cf32625dd70bf56931370c00cac64b5              604 main/binary-amd64/Packages
+ 8cb74b2a7d1b5acebe9b2273990f11a66f1038db2e5030f5d6bacca901a29f1e              438 main/binary-amd64/Packages.gz
 SHA512:
- 29e0d5ec58eb5b62976456d974686413a0a5171659d87877510d4b8ac2877ff63939c1fb53c111f8e6dfcca3f283cb942f2dfeb9601c6711d64f0c8c0f2f7d43              155 Release
- 6ea358b4fe0a07eec97d819d5cdbbb94b1656cf8f6f90571d961754d832afa52c7a7042da4264a3d48f5307a44ed85b8de364559666d173fff1a302107b4b343              604 main/binary-amd64/Packages
- 2ce74771bc7a71d8c6e48ff189e0db66b35a926f2c59e3641be455d1aaacf9d37a37d265e069ddedea645af0b7c7feaae57912502a961a43ddb21ae94f804023              436 main/binary-amd64/Packages.gz
+ 4f427f837b9436189e12951026c9cb009d11df770b3acf7f2ff2cac40f14aab9a0ea1f76c16ff754620845775e40e02c33f0e1009dbd8a7b339209ae83024ce7              155 Release
+ 533ddf7e848421fa0a9b442d7bd2f259d232c9f43310080e3132b39701a7e51b6398fa41dea97c8043415f6e4dd0dfc5f134a41a51dc3811771cdb9c6f7abb2e              604 main/binary-amd64/Packages
+ d9fbd9fce1465ad4a404889a66c877e0dcd8891fa1b457afba1783385fe0428399b17981b195b7aec8ea50ebfa6f68746299b7dd1d126a0e3008282767985914              438 main/binary-amd64/Packages.gz
