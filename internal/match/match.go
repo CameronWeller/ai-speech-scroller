@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
 var stopwords = map[string]bool{}
@@ -26,6 +27,7 @@ type Token struct {
 	Spoken bool // has a normalized form and is not a stage direction
 	Cue    bool // stage direction: [brackets] or a line starting with → / ->
 	Br     int  // line breaks before this token (0 = same line)
+	Off    int  // rune offset of Raw in the script (after \r\n -> \n)
 }
 
 // Normalize lowercases and strips everything but letters and digits.
@@ -47,15 +49,18 @@ var cueLine = regexp.MustCompile(`^\s*(→|->|\[)`)
 // Tokenize splits script text into display tokens.
 func Tokenize(text string) []Token {
 	var out []Token
-	br := 0
+	br, lineOff := 0, 0
 	for _, line := range strings.Split(strings.ReplaceAll(text, "\r\n", "\n"), "\n") {
+		off := lineOff
+		lineOff += utf8.RuneCountInString(line) + 1
 		if strings.TrimSpace(line) == "" {
 			br++
 			continue
 		}
 		cl := cueLine.MatchString(line)
 		inBracket, first := false, true
-		for _, raw := range strings.Fields(line) {
+		for _, f := range fields(line) {
+			raw := f.s
 			if strings.Contains(raw, "[") {
 				inBracket = true
 			}
@@ -64,7 +69,7 @@ func Tokenize(text string) []Token {
 			if !cue {
 				norm = Normalize(raw)
 			}
-			t := Token{Raw: raw, Norm: norm, Spoken: norm != "", Cue: cue}
+			t := Token{Raw: raw, Norm: norm, Spoken: norm != "", Cue: cue, Off: off + f.off}
 			if first {
 				t.Br = br + 1
 			}
@@ -75,6 +80,32 @@ func Tokenize(text string) []Token {
 			}
 		}
 		br = 0
+	}
+	return out
+}
+
+type field struct {
+	s   string
+	off int // rune offset within the line
+}
+
+// fields is strings.Fields that also reports where each field starts.
+func fields(line string) []field {
+	var out []field
+	start, startRune, n := -1, 0, 0
+	for i, r := range line {
+		if unicode.IsSpace(r) {
+			if start >= 0 {
+				out = append(out, field{line[start:i], startRune})
+				start = -1
+			}
+		} else if start < 0 {
+			start, startRune = i, n
+		}
+		n++
+	}
+	if start >= 0 {
+		out = append(out, field{line[start:], startRune})
 	}
 	return out
 }

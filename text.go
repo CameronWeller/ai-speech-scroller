@@ -9,6 +9,7 @@ import (
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/gobold"
 	"golang.org/x/image/font/gofont/goitalic"
+	"golang.org/x/image/font/gofont/gomono"
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
 )
@@ -18,6 +19,7 @@ type glyphs struct {
 	r     *sdl.Renderer
 	bold  *opentype.Font
 	ital  *opentype.Font
+	mono  *opentype.Font
 	faces map[faceKey]font.Face
 	tex   map[strKey]*glyph
 	mu    sync.Mutex
@@ -26,6 +28,7 @@ type glyphs struct {
 type faceKey struct {
 	px     int
 	italic bool
+	mono   bool // fixed-width face for the script editor
 }
 type strKey struct {
 	faceKey
@@ -45,7 +48,11 @@ func newGlyphs(r *sdl.Renderer) *glyphs {
 	if err != nil {
 		panic(err)
 	}
-	return &glyphs{r: r, bold: b, ital: i, faces: map[faceKey]font.Face{}, tex: map[strKey]*glyph{}}
+	m, err := opentype.Parse(gomono.TTF)
+	if err != nil {
+		panic(err)
+	}
+	return &glyphs{r: r, bold: b, ital: i, mono: m, faces: map[faceKey]font.Face{}, tex: map[strKey]*glyph{}}
 }
 
 func (g *glyphs) face(k faceKey) font.Face {
@@ -55,6 +62,9 @@ func (g *glyphs) face(k faceKey) font.Face {
 	src := g.bold
 	if k.italic {
 		src = g.ital
+	}
+	if k.mono {
+		src = g.mono
 	}
 	f, err := opentype.NewFace(src, &opentype.FaceOptions{Size: float64(k.px), DPI: 72, Hinting: font.HintingFull})
 	if err != nil {

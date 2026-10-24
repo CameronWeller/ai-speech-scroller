@@ -32,7 +32,8 @@ flatpak install --user ai-speech-scroller io.github.CameronWeller.AiSpeechScroll
 flatpak run io.github.CameronWeller.AiSpeechScroller
 ```
 
-Scripts are readable from Documents and Downloads inside the sandbox.
+Scripts are readable from Documents and Downloads inside the sandbox; in-app edits to those are
+saved as a copy in the app's config directory.
 
 ### Direct download
 
@@ -63,8 +64,33 @@ Then press **Space** to start or stop listening and read. **Esc** opens the menu
 Plain text. Blank lines are kept as paragraph gaps. Stage directions are shown dim and are never
 expected to be spoken: anything in `[brackets]` and any line starting with `→` or `->`.
 
-Change the script without leaving the prompter: **Ctrl+V** pastes the clipboard, **Ctrl+O** opens a
-file (needs `zenity` or `kdialog`), and editing the file on disk reloads it within a second.
+Change the script without leaving the prompter: **Ctrl+E** edits it in place, **Ctrl+V** pastes the
+clipboard, **Ctrl+O** opens a file (needs `zenity` or `kdialog`), and editing the file on disk
+reloads it within a second.
+
+### Editing in the app
+
+**Ctrl+E** (or the **Edit** button, or Menu → Script → Edit...) opens the script in a built-in
+editor with the cursor on the word you were reading. Saving writes the script file and reloads the
+prompter without losing your place.
+
+| Key | Action |
+|---|---|
+| Ctrl+S | save |
+| Ctrl+Enter | save and close |
+| Esc | close (with unsaved changes, press it twice to discard them) |
+| Ctrl+Z / Ctrl+Shift+Z or Ctrl+Y | undo / redo |
+| Ctrl+A, Ctrl+C, Ctrl+X, Ctrl+V | select all, copy, cut, paste |
+| Shift + arrows / Home / End | select |
+| Ctrl + ← → / Backspace / Delete | move or delete by word |
+| Ctrl+Home / Ctrl+End | start / end of the script |
+| Ctrl + / Ctrl − | editor text size |
+
+Click places the cursor, drag selects, double-click selects a word and triple-click a line. Line
+endings (`\n` or `\r\n`) are kept. If the file changed on disk while you were editing, the first
+save warns and a second one overwrites it. If the file cannot be written (for example, Documents and
+Downloads are read-only in the Flatpak), the edit is saved to `edited.txt` in the config directory
+and the prompter switches to that copy.
 
 ## Controls
 
@@ -81,6 +107,7 @@ appears; **F1** (or Menu → Help) shows a visual key sheet.
 | Mouse wheel | nudge the position |
 | + / − | text size |
 | M | mirror (for glass that reflects the screen; off by default) |
+| Ctrl+E | edit the script |
 | Ctrl+V / Ctrl+O | paste / open a script |
 | F1 or ? | key sheet |
 

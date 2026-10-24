@@ -59,6 +59,8 @@ type app struct {
 	dispIdx   int
 	listening bool
 
+	ed *editor // script editor, nil while closed
+
 	menuOpen bool
 	keysOpen bool
 	menuSel  int
@@ -295,7 +297,11 @@ func (a *app) cycleMic(d int) {
 
 func clamp(v, lo, hi int) int { return max(lo, min(hi, v)) }
 
-func (a *app) key(k sdl.Keycode) {
+func (a *app) key(k sdl.Keycode, mod uint16) {
+	if a.ed != nil {
+		a.editKey(k, mod)
+		return
+	}
 	if a.keysOpen { // any key closes the key sheet
 		a.keysOpen = false
 		return
@@ -315,12 +321,16 @@ func (a *app) key(k sdl.Keycode) {
 	}
 	switch k {
 	case sdl.K_v:
-		if sdl.GetModState()&sdl.KMOD_CTRL != 0 {
+		if mod&sdl.KMOD_CTRL != 0 {
 			a.pasteScript()
 		}
 	case sdl.K_o:
-		if sdl.GetModState()&sdl.KMOD_CTRL != 0 {
+		if mod&sdl.KMOD_CTRL != 0 {
 			a.openScript()
+		}
+	case sdl.K_e:
+		if mod&sdl.KMOD_CTRL != 0 {
+			a.openEditor()
 		}
 	case sdl.K_SPACE:
 		a.toggleListening()
@@ -430,7 +440,9 @@ func (a *app) frame(dt float64) {
 	a.r.SetDrawColor(255, 210, 74, 255)
 	a.r.FillRect(&sdl.Rect{X: 0, Y: gy + 8, W: 10, H: int32(a.lineH)}) // marker beside the current line
 	a.hits = a.hits[:0]
-	if a.keysOpen {
+	if a.ed != nil {
+		a.drawEditor(w, h)
+	} else if a.keysOpen {
 		a.drawKeys(w, h)
 	} else if a.menuOpen {
 		a.drawMenu(w, h, heard, status)
@@ -445,7 +457,7 @@ func (a *app) frame(dt float64) {
 	}
 	_ = a.r.CopyEx(a.target2, nil, nil, 0, nil, flip)
 	// Use the system cursor; hide it while the prompter is untouched.
-	if a.menuOpen || a.keysOpen || a.mouseActive() {
+	if a.ed != nil || a.menuOpen || a.keysOpen || a.mouseActive() {
 		sdl.ShowCursor(sdl.ENABLE)
 	} else {
 		sdl.ShowCursor(sdl.DISABLE)
@@ -466,22 +478,34 @@ func (a *app) loop() {
 		for ev := sdl.PollEvent(); ev != nil; ev = sdl.PollEvent() {
 			switch e := ev.(type) {
 			case *sdl.QuitEvent:
-				a.quit = true
+				a.quit = a.ed == nil || a.ed.confirmDiscard("close again to quit without saving")
 			case *sdl.MouseMotionEvent:
 				a.mouseAt(e.X, e.Y)
+				if a.ed != nil && e.State&sdl.ButtonLMask() != 0 {
+					a.editDrag()
+				}
 			case *sdl.MouseButtonEvent:
 				a.mouseAt(e.X, e.Y)
 				if e.Type == sdl.MOUSEBUTTONDOWN && e.Button == sdl.BUTTON_LEFT {
-					a.click()
+					if !a.click() && a.ed != nil {
+						a.editClick(int(e.Clicks))
+					}
 				}
 			case *sdl.MouseWheelEvent:
 				a.lastMove = time.Now()
-				if !a.menuOpen {
+				if a.ed != nil {
+					a.ed.scroll -= 3 * int(e.Y)
+					a.ed.follow = false
+				} else if !a.menuOpen {
 					a.nudge(-int(e.Y))
+				}
+			case *sdl.TextInputEvent:
+				if a.ed != nil {
+					a.editText(e.GetText())
 				}
 			case *sdl.KeyboardEvent:
 				if e.Type == sdl.KEYDOWN {
-					a.key(e.Keysym.Sym)
+					a.key(e.Keysym.Sym, e.Keysym.Mod) // the event's modifiers, not the live state, which may have moved on
 				}
 			}
 		}

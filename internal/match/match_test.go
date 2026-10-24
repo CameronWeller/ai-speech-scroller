@@ -103,3 +103,13 @@ func TestStageDirectionsNotSpoken(t *testing.T) {
 		t.Fatal("did not cross the cue")
 	}
 }
+
+func TestTokenOffsets(t *testing.T) {
+	text := "Héllo  wörld\r\n\r\n[pause] again"
+	norm := []rune("Héllo  wörld\n\n[pause] again")
+	for _, tk := range Tokenize(text) {
+		if got := string(norm[tk.Off : tk.Off+len([]rune(tk.Raw))]); got != tk.Raw {
+			t.Fatalf("token %q at %d reads %q", tk.Raw, tk.Off, got)
+		}
+	}
+}

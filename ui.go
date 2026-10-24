@@ -30,15 +30,17 @@ func (a *app) frameMouse(w int32) (int32, int32) {
 	return a.mx, a.my
 }
 
-func (a *app) click() {
+// click runs the clicked button and reports whether there was one.
+func (a *app) click() bool {
 	x, y := a.frameMouse(a.tw)
 	for i := len(a.hits) - 1; i >= 0; i-- {
 		h := a.hits[i]
 		if x >= h.r.X && x < h.r.X+h.r.W && y >= h.r.Y && y < h.r.Y+h.r.H {
 			h.fn()
-			return
+			return true
 		}
 	}
+	return false
 }
 
 // button draws a labelled button, registers its click, and returns nothing.
@@ -110,7 +112,7 @@ func (a *app) rows() []row {
 		{label: "Reading line", value: func() string { return fmt.Sprintf("%d%%", a.cfg.Guide) },
 			dec: func() { a.cfg.Guide = clamp(a.cfg.Guide-3, 10, 70) }, inc: func() { a.cfg.Guide = clamp(a.cfg.Guide+3, 10, 70) }},
 		{label: "Mirror", value: func() string { return onoff(a.cfg.Mirror) }, toggle: func() { a.cfg.Mirror = !a.cfg.Mirror }},
-		{label: "Script", btns: []rbtn{{"Paste clipboard", a.pasteScript}, {"Open file...", a.openScript}}},
+		{label: "Script", btns: []rbtn{{"Edit...", a.openEditor}, {"Paste clipboard", a.pasteScript}, {"Open file...", a.openScript}}},
 		{label: "Nudge", btns: []rbtn{{"Back 1 word", func() { a.nudge(-1) }}, {"Forward 1 word", func() { a.nudge(1) }}}},
 		{label: "Position", btns: []rbtn{{"Restart", func() { a.nudge(-1 << 30) }}, {"Back 5", func() { a.nudge(-5) }}, {"Forward 5", func() { a.nudge(5) }}}},
 		{label: "Help", btns: []rbtn{{"Key sheet (F1)", func() { a.keysOpen = true }}}},
@@ -200,7 +202,7 @@ func (a *app) drawMenu(w, h int32, heard, status string) {
 		y += rh
 	}
 	small := faceKey{px: max(14, px*2/3), italic: true}
-	msg := "Esc closes  |  Ctrl+V paste script, Ctrl+O open  |  heard: " + heard
+	msg := "Esc closes  |  Ctrl+E edit script, Ctrl+V paste, Ctrl+O open  |  heard: " + heard
 	if status != "" {
 		msg = status
 	}
@@ -226,6 +228,7 @@ func (a *app) drawBar(w, h int32) {
 		{"A -", false, func() { a.cfg.Size = clamp(a.cfg.Size-4, 24, 240) }},
 		{"A +", false, func() { a.cfg.Size = clamp(a.cfg.Size+4, 24, 240) }},
 		{"Mirror", a.cfg.Mirror, func() { a.cfg.Mirror = !a.cfg.Mirror }},
+		{"Edit", false, a.openEditor},
 		{"Menu", false, func() { a.menuOpen = true }},
 	}
 	gap := int32(8)
@@ -269,6 +272,7 @@ var bindings = []binding{
 	{[]string{"Wheel"}, "Nudge the position"},
 	{[]string{"+", "-"}, "Text size"},
 	{[]string{"M"}, "Mirror the screen"},
+	{[]string{"Ctrl", "E"}, "Edit the script (Ctrl+S saves, Esc closes)"},
 	{[]string{"Ctrl", "V"}, "Paste a script from the clipboard"},
 	{[]string{"Ctrl", "O"}, "Open a script file"},
 	{[]string{"F1", "?"}, "Show this sheet"},

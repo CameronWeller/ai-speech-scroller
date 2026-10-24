@@ -16,10 +16,11 @@ type Config struct {
 	Mirror   bool   `json:"mirror"`  // flip horizontally for beam-splitter glass
 	Script   string `json:"script"`  // last script path
 	NoListen bool   `json:"no_listen"`
+	EditSize int    `json:"edit_size"` // script editor text size in px
 }
 
 func defaultConfig() Config {
-	return Config{Size: 72, Column: 80, Guide: 38, Mirror: false}
+	return Config{Size: 72, Column: 80, Guide: 38, Mirror: false, EditSize: 32}
 }
 
 func configPath() string {
